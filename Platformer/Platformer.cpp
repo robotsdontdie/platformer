@@ -44,9 +44,10 @@ Platformer::Platformer() :
     m_pEnemyRects(),
     // Brushes
     m_pLightSlateGrayBrush(NULL),
-    m_pDarkRedBrush(NULL),
     m_pCornflowerBlueBrush(NULL),
-    m_pInnerSquareBrush(NULL)
+    m_pInnerSquareBrush(NULL),
+    m_pTextureBrushes(),
+    m_pTextureBitmaps()
 {
     QueryPerformanceCounter(&m_lastFrameTime);
     QueryPerformanceFrequency(&m_performanceFrequency);
@@ -64,7 +65,6 @@ Platformer::~Platformer()
     
     // Brushes
     SafeRelease(&m_pLightSlateGrayBrush);
-    SafeRelease(&m_pDarkRedBrush);
     SafeRelease(&m_pCornflowerBlueBrush);
     SafeRelease(&m_pInnerSquareBrush);
 }
@@ -72,14 +72,6 @@ Platformer::~Platformer()
 void Platformer::RunMessageLoop()
 {
     CreateDeviceResources();
-
-    /*
-    HBITMAP hBitmap = LoadBitmap(HINST_THISCOMPONENT, MAKEINTRESOURCE(TO_TEXTURE_RES(1)));
-    IWICBitmap* pWICBitmap;
-    HRESULT hr = m_pIWICFactory->CreateBitmapFromHBITMAP(hBitmap, NULL, WICBitmapIgnoreAlpha, &pWICBitmap);
-    ID2D1Bitmap* pBitmap;
-    hr = m_pRenderTarget->CreateBitmapFromWicBitmap(pWICBitmap, &pBitmap);
-    */
 
     ResetGame();
     while (TickGame())
@@ -106,31 +98,42 @@ HRESULT Platformer::CreateDeviceIndependentResources()
         reinterpret_cast<void**>(&m_pIWICFactory));
 
     // Base
-    hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
-
-    hr = DWriteCreateFactory(
+    if (SUCCEEDED(hr))
+    {
+        hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
+    }
+    
+    if (SUCCEEDED(hr))
+    {
+        hr = DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED,
             __uuidof(m_pWriteFactory),
             reinterpret_cast<IUnknown**>(&m_pWriteFactory));
-    RETURN_IF_FAILED(hr);
-
+    }
+    
     // Text
-    hr = m_pWriteFactory->CreateTextFormat(
-        L"Verdana",
-        NULL,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        20,
-        L"",
-        &m_pDebugTextFormat);
-    RETURN_IF_FAILED(hr);
+    if (SUCCEEDED(hr))
+    {
+        hr = m_pWriteFactory->CreateTextFormat(
+            L"Verdana",
+            NULL,
+            DWRITE_FONT_WEIGHT_NORMAL,
+            DWRITE_FONT_STYLE_NORMAL,
+            DWRITE_FONT_STRETCH_NORMAL,
+            20,
+            L"",
+            &m_pDebugTextFormat);
+    }
 
-    hr = m_pDebugTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-    RETURN_IF_FAILED(hr);
+    if (SUCCEEDED(hr))
+    {
+        hr = m_pDebugTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    }
 
-    hr = m_pDebugTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-    RETURN_IF_FAILED(hr);
+    if (SUCCEEDED(hr))
+    {
+        hr = m_pDebugTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    }
 
     return hr;
 }
@@ -151,7 +154,7 @@ HRESULT Platformer::CreateDeviceResources()
         // Create a Direct2D render target;
         hr = m_pDirect2dFactory->CreateHwndRenderTarget(
             D2D1::RenderTargetProperties(),
-            D2D1::HwndRenderTargetProperties(m_hwnd, size),
+            D2D1::HwndRenderTargetProperties(m_hwnd, size, D2D1_PRESENT_OPTIONS_IMMEDIATELY),
             &m_pRenderTarget);
 
         if (SUCCEEDED(hr))
@@ -162,17 +165,6 @@ HRESULT Platformer::CreateDeviceResources()
                 &m_pLightSlateGrayBrush);
         }
 
-        RETURN_IF_FAILED(hr);
-
-        if (SUCCEEDED(hr))
-        {
-            hr = m_pRenderTarget->CreateSolidColorBrush(
-                D2D1::ColorF(D2D1::ColorF::DarkRed),
-                &m_pDarkRedBrush);
-        }
-
-        RETURN_IF_FAILED(hr);
-
         if (SUCCEEDED(hr))
         {
             hr = m_pRenderTarget->CreateSolidColorBrush(
@@ -180,16 +172,12 @@ HRESULT Platformer::CreateDeviceResources()
                 &m_pCornflowerBlueBrush);
         }
 
-        RETURN_IF_FAILED(hr);
-
         if (SUCCEEDED(hr))
         {
             hr = m_pRenderTarget->CreateSolidColorBrush(
                 D2D1::ColorF(D2D1::ColorF::MediumPurple),
                 &m_pInnerSquareBrush);
         }
-
-        RETURN_IF_FAILED(hr);
     }
 
     for (int index = 0; index < NUM_TEXTURES; index++)

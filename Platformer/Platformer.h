@@ -38,8 +38,6 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
 #endif
 
-#define RETURN_IF_FAILED(hr) do{if (!SUCCEEDED(hr)) return hr;} while(false)
-
 #define SCREEN_WIDTH 200
 #define SCREEN_HEIGHT 150
 
@@ -760,7 +758,6 @@ private:
     
     // Brushes
     ID2D1SolidColorBrush* m_pLightSlateGrayBrush;
-    ID2D1SolidColorBrush* m_pDarkRedBrush;
     ID2D1SolidColorBrush* m_pCornflowerBlueBrush;
     ID2D1SolidColorBrush* m_pInnerSquareBrush;
     
