@@ -279,6 +279,10 @@ public:
         {
             spriteOffset = fallingOffset;
         }
+        else if ((action & Action::MOVE_LEFT) && (action & Action::MOVE_RIGHT))
+        {
+            spriteOffset = nominalOffset;
+        }
         else if (action & (Action::MOVE_LEFT | Action::MOVE_RIGHT))
         {
             if (static_cast<int>(animTime * runAnimRate) % 2)
