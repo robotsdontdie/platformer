@@ -516,7 +516,7 @@ HRESULT Platformer::RenderGame()
         
         m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
         static int frame = 1;
-        std::wstring frameString = std::to_wstring((int)(m_gameState.simTime * 1000000));
+        std::wstring frameString = std::to_wstring((int)(m_gameState.frameRate));
         m_pRenderTarget->DrawTextW(
             frameString.c_str(),
             static_cast<UINT32>(frameString.length()),
